@@ -1,45 +1,68 @@
 import sys
 import re
 import time
-from translator import Translator
+from typing import List, Iterator
+from translator import TranslatorInterface, Translator
 
-class SRTHandler:
-    def __init__(self):
-        self.translator = Translator()
+class SRTFile:
+    def __init__(self, file_path: str):
+        self.file_path = file_path
 
-    def read_srt(self, file_path):
+    def read_lines(self) -> List[str]:
         """Lê um arquivo SRT e retorna uma lista de linhas."""
-        with open(file_path, "r", encoding="utf-8") as file:
+        with open(self.file_path, "r", encoding="utf-8") as file:
             return file.readlines()
 
-    def write_srt(self, file_path, lines):
-        """Escreve um arquivo SRT traduzido."""
-        with open(file_path, "w", encoding="utf-8") as file:
+    def write_lines(self, lines: List[str]) -> None:
+        """Escreve um arquivo SRT."""
+        with open(self.file_path, "w", encoding="utf-8") as file:
             file.writelines(lines)
 
-    def translate_srt(self, input_srt, output_srt):
-        """Traduz as legendas mantendo a formatação e exibe o progresso e tempo total."""
-        lines = self.read_srt(input_srt)
-        total_lines = len(lines)  # Número total de linhas
+class ProgressTracker:
+    def __init__(self, total_lines: int):
+        self.total_lines = total_lines
+        self.current_line = 0
+        self.start_time = time.time()
+
+    def update(self, lines_processed: int = 1) -> None:
+        self.current_line += lines_processed
+        progress = self.current_line / self.total_lines * 100
+        sys.stdout.write(f"\rProgresso: {progress:.2f}% concluído")
+        sys.stdout.flush()
+
+    def finish(self) -> float:
+        end_time = time.time()
+        total_time = end_time - self.start_time
+        print("\n✅ Tradução concluída!")
+        print(f"⏳ Tempo total: {total_time:.2f} segundos")
+        return total_time
+
+class SRTHandler:
+    def __init__(self, translator: TranslatorInterface = None):
+        self.translator = translator or Translator()
+
+    def _is_metadata_line(self, line: str) -> bool:
+        """Verifica se a linha é um número de sequência ou timestamp."""
+        return bool(re.match(r"^\d+$", line.strip()) or "-->" in line)
+
+    def _translate_line(self, line: str) -> str:
+        """Traduz uma linha de texto se não for metadata."""
+        if self._is_metadata_line(line):
+            return line
+        return self.translator.translate_text(line.strip()) + "\n"
+
+    def translate_srt(self, input_path: str, output_path: str) -> None:
+        """Traduz as legendas mantendo a formatação e exibe o progresso."""
+        input_file = SRTFile(input_path)
+        output_file = SRTFile(output_path)
+        
+        lines = input_file.read_lines()
+        progress = ProgressTracker(len(lines))
+        
         translated_lines = []
-
-        start_time = time.time()  # Inicia a contagem do tempo
-
-        for index, line in enumerate(lines):
-            if re.match(r"^\d+$", line.strip()) or "-->" in line:
-                translated_lines.append(line)  # Mantém números e timestamps
-            else:
-                translated_lines.append(self.translator.translate_text(line.strip()) + "\n")
-
-            # Cálculo da porcentagem concluída
-            progress = (index + 1) / total_lines * 100
-            sys.stdout.write(f"\rProgresso: {progress:.2f}% concluído")
-            sys.stdout.flush()
-
-        end_time = time.time()  # Finaliza a contagem do tempo
-        total_time = end_time - start_time  # Calcula o tempo total em segundos
-
-        print("\n✅ Tradução concluída!")  # Mensagem final
-        print(f"⏳ Tempo total: {total_time:.2f} segundos")  # Exibe o tempo gasto
-
-        self.write_srt(output_srt, translated_lines)
+        for line in lines:
+            translated_lines.append(self._translate_line(line))
+            progress.update()
+        
+        output_file.write_lines(translated_lines)
+        progress.finish()

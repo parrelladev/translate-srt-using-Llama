@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tradutor de Legendas SRT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h2 class="text-center mb-0 text-white">
+                            <i class="bi bi-translate me-2"></i>
+                            Tradutor de Legendas SRT
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" id="upload-form">
+                            <div class="mb-4">
+                                <div class="upload-area p-5 border rounded text-center" id="drop-zone">
+                                    <i class="bi bi-cloud-arrow-up display-4 mb-3 text-primary"></i>
+                                    <h4>Arraste e solte seu arquivo .srt aqui</h4>
+                                    <p class="text-muted mb-3">ou</p>
+                                    <label for="file" class="btn btn-primary">
+                                        <i class="bi bi-folder me-2"></i>
+                                        Selecione um arquivo
+                                        <input type="file" id="file" name="file" accept=".srt" class="d-none">
+                                    </label>
+                                    <p class="text-muted mt-3 small">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Apenas arquivos .srt são aceitos
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div id="file-info" class="alert alert-info d-none">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-file-text me-2"></i>
+                                    <div>
+                                        <strong>Arquivo selecionado:</strong>
+                                        <span id="file-name" class="ms-2"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-success btn-lg" id="submit-btn" disabled>
+                                    <i class="bi bi-translate me-2"></i>
+                                    Traduzir Arquivo
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 text-muted">
+                    <p class="small">
+                        <i class="bi bi-shield-check me-1"></i>
+                        Seus arquivos são processados localmente e não são armazenados.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 
